@@ -1,0 +1,51 @@
+# Copy to config.yaml and adjust to your needs.
+# No API key required — all data comes from scraping public search pages.
+
+schedule:
+  hour: 7
+  minute: 0
+  timezone: Europe/Berlin
+
+search:
+  country: DE
+  price_min_eur: null         # leave null for no minimum
+  price_max_eur: 28000
+  year_min: 2018
+  year_max: null
+  mileage_max_km: 150000
+  make: BMW
+  model: "3 Series"
+
+  # Exact URL slugs used by each site.
+  # Tip: do a search on the site and copy the slug from the URL bar.
+  #
+  # AutoScout24: go to autoscout24.com, search your car, look at the URL:
+  #   /lst/bmw/3er-(all)?... → make_slug=bmw, model_slug=3er-(all)
+  autoscout_make_slug: bmw
+  autoscout_model_slug: "3-series-(all)"
+  # mobile.de: go to suchen.mobile.de, search your car, look at the URL:
+  #   ?makeModelVariant1.makeId=BMW&makeModelVariant1.modelId=3ER
+  mobilede_make_id: BMW
+  mobilede_model_id: 3ER
+
+sources:
+  mobile_de:
+    enabled: false          # needs curl_cffi to bypass bot protection; see README
+    max_pages: 5
+  autoscout:
+    enabled: true
+    max_pages: 5            # 20 results/page → up to 100 listings
+    country_code: D         # D=Germany, A=Austria, CH=Switzerland
+
+ranking:
+  top_n: 10
+  # Strategies: best_deal | cheapest_first | newest_first | lowest_price_per_km
+  strategy: best_deal
+  # Only show listings where the deal score ≥ this value.
+  # Score = how many % below expected price (based on year + mileage).
+  # null = show all, 0 = at/below average, 10 = ≥10% below expected, etc.
+  min_deal_score: 5
+
+notification:
+  telegram:
+    enabled: true           # false → print to console instead
