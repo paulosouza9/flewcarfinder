@@ -46,14 +46,14 @@ def run_once() -> None:
     app = load_app_config()
     seen_keys = load_seen_keys()
     raw = collect_listings(app, seen_keys)
-    new_only = filter_new(raw)
-    ranked = rank_listings(new_only, app)
+    ranked = rank_listings(raw, app)
+    new_deals = filter_new(ranked)
     logger.info(
-        "Collected %s listings, %s new, %s after ranking.",
-        len(raw), len(new_only), len(ranked),
+        "Collected %s listings, %s ranked, %s new.",
+        len(raw), len(ranked), len(new_deals),
     )
-    if ranked:
-        notify(ranked, app)
-        remember(ranked)
+    if new_deals:
+        notify(new_deals, app)
+        remember(new_deals)
     else:
         logger.info("No new deals to send today.")
