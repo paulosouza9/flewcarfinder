@@ -1,0 +1,55 @@
+name: Daily Car Deals
+
+on:
+  schedule:
+    # Every day at 07:00 UTC (= 09:00 Berlin summer / 08:00 winter)
+    - cron: "0 7 * * *"
+  # Run manually from the Actions tab whenever you want
+  workflow_dispatch:
+
+jobs:
+  send-deals:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # Restore seen_deals.json from the previous run so we don't re-send old deals
+      - name: Restore memory
+        uses: actions/cache/restore@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals
+
+      - name: Run bot
+        env:
+          CALLMEBOT_PHONE: ${{ secrets.CALLMEBOT_PHONE }}
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m car_deal_bot run-once
+
+      # Save updated memory so next run doesn't re-send the same deals
+      - name: Save memory
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals-${{ github.run_id }}
+
+      # Keep the stable restore key pointing at the latest saved memory
+      - name: Update restore key
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals
+        continue-on-error: true
