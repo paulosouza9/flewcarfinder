@@ -23,6 +23,8 @@ class EnvSettings(BaseSettings):
     config_path: Path = Field(default=Path("config.yaml"))
     telegram_bot_token: str | None = Field(default=None, alias="TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str | None = Field(default=None, alias="TELEGRAM_CHAT_ID")
+    callmebot_phone: str | None = Field(default=None, alias="CALLMEBOT_PHONE")
+    callmebot_apikey: str | None = Field(default=None, alias="CALLMEBOT_APIKEY")
 
 
 @lru_cache

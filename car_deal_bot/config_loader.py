@@ -40,16 +40,21 @@ class RankingConfig(BaseModel):
 
 
 class TelegramNotifConfig(BaseModel):
-    enabled: bool = True
+    enabled: bool = False
+
+
+class WhatsAppNotifConfig(BaseModel):
+    enabled: bool = False
 
 
 class NotificationConfig(BaseModel):
     telegram: TelegramNotifConfig = Field(default_factory=TelegramNotifConfig)
+    whatsapp: WhatsAppNotifConfig = Field(default_factory=WhatsAppNotifConfig)
 
 
 class AppConfig(BaseModel):
     schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)
-    search: SearchParams
+    searches: list[SearchParams]
     sources: SourcesConfig = Field(default_factory=SourcesConfig)
     ranking: RankingConfig = Field(default_factory=RankingConfig)
     notification: NotificationConfig = Field(default_factory=NotificationConfig)
@@ -69,4 +74,7 @@ def _read_yaml(path: Path) -> dict[str, Any]:
 
 def load_app_config() -> AppConfig:
     raw = _read_yaml(config_file_path())
+    # Backward-compat: old single `search:` key → wrap in a list
+    if "search" in raw and "searches" not in raw:
+        raw["searches"] = [raw.pop("search")]
     return AppConfig.model_validate(raw)

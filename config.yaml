@@ -3,22 +3,40 @@ schedule:
   minute: 0
   timezone: Europe/Berlin
 
-search:
-  country: DE
-  price_min_eur: null
-  price_max_eur: 8000
-  year_min: 2011
-  year_max: null
-  mileage_max_km: 190000
-  make: BMW
-  model: "3 Series"
-
-  # Exact URL slugs — these must match what each site uses in its URL.
-  # Tip: search on the site manually and copy the slug from the URL bar.
-  autoscout_make_slug: bmw
-  autoscout_model_slug: "3-series-(all)"
-  mobilede_make_id: BMW
-  mobilede_model_id: 3ER
+searches:
+  - make: BMW
+    model: "x1"
+    price_min_eur: null
+    price_max_eur: 18500
+    year_min: 2014
+    year_max: null
+    mileage_max_km: 150000
+    # Exact URL slugs — copy from the site's URL bar when you do a manual search.
+    autoscout_make_slug: bmw
+    autoscout_model_slug: "x1"
+    mobilede_make_id: BMW
+    mobilede_model_id: X1
+  - make: Porsche
+    model: Cayenne
+    price_max_eur: 19500
+    year_min: 2010
+    mileage_max_km: 170000
+    autoscout_make_slug: porsche
+    autoscout_model_slug: cayenne
+  - make: Porsche
+    model: Macan
+    price_max_eur: 19500
+    year_min: 2010
+    mileage_max_km: 170000
+    autoscout_make_slug: porsche
+    autoscout_model_slug: macan
+  - make: BMW
+    model: "x3"
+    price_max_eur: 18500
+    year_min: 2014
+    mileage_max_km: 150000
+    autoscout_make_slug: BMW
+    autoscout_model_slug: X3
 
 sources:
   mobile_de:
@@ -38,5 +56,7 @@ ranking:
     - touri
 
 notification:
+  whatsapp:
+    enabled: true
   telegram:
     enabled: true
