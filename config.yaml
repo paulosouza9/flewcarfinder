@@ -30,9 +30,12 @@ sources:
     country_code: D       # D=Germany, A=Austria, CH=Switzerland
 
 ranking:
-  top_n: 10
+  top_n: 15
   strategy: best_deal     # best_deal | cheapest_first | newest_first | lowest_price_per_km
   min_deal_score: 5       # only show listings ≥5% below expected price (null = show all)
+  exclude_keywords:        # titles containing these words are filtered out
+    - touring
+    - touri
 
 notification:
   telegram:

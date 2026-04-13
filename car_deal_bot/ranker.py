@@ -18,6 +18,8 @@ _DAMAGE_KEYWORDS = [
     "getriebeschaden", "totalschaden",
 ]
 
+_DEFAULT_EXCLUDE = ["touring", "touri"]
+
 
 def dedupe(listings: list[VehicleListing]) -> list[VehicleListing]:
     seen: set[tuple[str, str]] = set()
@@ -31,12 +33,15 @@ def dedupe(listings: list[VehicleListing]) -> list[VehicleListing]:
     return out
 
 
-def _exclude_damaged(listings: list[VehicleListing]) -> list[VehicleListing]:
-    """Remove listings whose title contains damage keywords."""
+def _exclude_by_keywords(
+    listings: list[VehicleListing], extra_exclude: list[str]
+) -> list[VehicleListing]:
+    """Remove listings whose title contains damage or user-excluded keywords."""
+    blocked = [kw.lower() for kw in _DAMAGE_KEYWORDS + _DEFAULT_EXCLUDE + extra_exclude]
     out: list[VehicleListing] = []
     for v in listings:
         title_lower = v.title.lower()
-        if any(kw in title_lower for kw in _DAMAGE_KEYWORDS):
+        if any(kw in title_lower for kw in blocked):
             continue
         out.append(v)
     return out
@@ -108,7 +113,7 @@ def _compute_deal_scores(listings: list[VehicleListing]) -> None:
 
 def rank_listings(listings: list[VehicleListing], app: AppConfig) -> list[VehicleListing]:
     items = dedupe(listings)
-    items = _exclude_damaged(items)
+    items = _exclude_by_keywords(items, app.ranking.exclude_keywords)
     _compute_deal_scores(items)
 
     strategy = app.ranking.strategy

@@ -35,7 +35,8 @@ class SourcesConfig(BaseModel):
 class RankingConfig(BaseModel):
     top_n: int = 15
     strategy: str = "best_deal"
-    min_deal_score: float | None = None  # only keep listings with deal_score >= this
+    min_deal_score: float | None = None
+    exclude_keywords: list[str] = []  # extra title keywords to filter out
 
 
 class TelegramNotifConfig(BaseModel):
