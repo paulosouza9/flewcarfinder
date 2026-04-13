@@ -190,17 +190,38 @@ def _parse_listing(raw: dict[str, Any]) -> VehicleListing | None:
     )
 
 
+_MAX_PAGES_HARD_LIMIT = 20  # never go beyond this regardless of config
+
+
 class AutoscoutSource(ListingSource):
     name = "autoscout24"
 
     def fetch(self, params: SearchParams, app: AppConfig) -> list[VehicleListing]:
+        return self.fetch_until(params, app)
+
+    def fetch_until(
+        self,
+        params: SearchParams,
+        app: AppConfig,
+        *,
+        needed: int | None = None,
+        seen_keys: set[str] | None = None,
+    ) -> list[VehicleListing]:
+        """Fetch pages until we have at least `needed` new (unseen) listings,
+        or we run out of pages. If `needed` is None, fetch up to max_pages."""
+        from car_deal_bot.memory import is_new as _is_new
+
         cfg = app.sources.autoscout
+        hard_limit = min(cfg.max_pages, _MAX_PAGES_HARD_LIMIT) if needed is None else _MAX_PAGES_HARD_LIMIT
         listings: list[VehicleListing] = []
+        new_count = 0
         total_pages = 1
 
         with httpx.Client(headers=_HEADERS, timeout=60.0, follow_redirects=True) as client:
-            for page in range(1, cfg.max_pages + 1):
-                if page > total_pages:
+            page = 0
+            while True:
+                page += 1
+                if page > hard_limit or page > total_pages:
                     break
 
                 url = _build_url(params, cfg.country_code, page)
@@ -218,21 +239,32 @@ class AutoscoutSource(ListingSource):
 
                 raw_listings, pages = _extract_page_data(r.text)
                 if page == 1:
-                    total_pages = min(pages, cfg.max_pages)
+                    total_pages = pages
 
                 if not raw_listings:
                     logger.debug("autoscout24: no listings on page %s.", page)
                     break
 
-                before = len(listings)
+                page_count = 0
                 for raw in raw_listings:
                     if not isinstance(raw, dict):
                         continue
                     parsed = _parse_listing(raw)
                     if parsed:
                         listings.append(parsed)
+                        page_count += 1
+                        if seen_keys is not None and _is_new(parsed, seen_keys):
+                            new_count += 1
 
-                logger.info("autoscout24 page %s/%s: %s listings.", page, total_pages, len(listings) - before)
+                logger.info(
+                    "autoscout24 page %s/%s: %s listings (total new so far: %s).",
+                    page, total_pages, page_count,
+                    new_count if seen_keys is not None else "?",
+                )
+
+                if needed is not None and seen_keys is not None and new_count >= needed:
+                    logger.info("autoscout24: found enough new listings, stopping.")
+                    break
 
                 if page >= total_pages:
                     break

@@ -24,8 +24,33 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # Restore seen_deals.json from the previous run so we don't re-send deals
+      - name: Restore memory
+        uses: actions/cache/restore@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals
+
       - name: Run bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python -m car_deal_bot run-once
+
+      # Save the updated memory for the next run.
+      # delete + save because actions/cache is immutable per key.
+      - name: Save memory
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals-${{ github.run_id }}
+
+      # Also keep the stable restore key pointing at latest
+      - name: Update restore key
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: seen_deals.json
+          key: seen-deals
+        continue-on-error: true
