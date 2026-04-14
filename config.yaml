@@ -6,7 +6,7 @@ schedule:
 search:
   country: DE
   price_min_eur: null
-  price_max_eur: 8000
+  price_max_eur: 6600
   year_min: 2011
   year_max: null
   mileage_max_km: 190000
